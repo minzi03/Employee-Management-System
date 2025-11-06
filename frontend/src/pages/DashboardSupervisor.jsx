@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { authHeader } from "../api";
 import Navbar from "../components/Navbar";
 import StatsCards from "../components/StatsCards";
@@ -71,6 +72,47 @@ const stats = {
           employees={filtered}
           onEvaluate={emp => setSelected(emp)}
         />
+
+        {/* Quick Actions */}
+        <div style={{ 
+          marginTop: "20px", 
+          display: "flex", 
+          gap: "12px", 
+          justifyContent: "center" 
+        }}>
+          <Link 
+            to="/criteria-admin" 
+            style={{
+              background: "#8b5cf6",
+              color: "white",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontWeight: "500",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            ⚙️ Quản lý Tiêu chí Đánh giá
+          </Link>
+          <Link 
+            to="/employee-management" 
+            style={{
+              background: "#3b82f6",
+              color: "white",
+              padding: "12px 24px",
+              borderRadius: "8px",
+              textDecoration: "none",
+              fontWeight: "500",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px"
+            }}
+          >
+            👥 Quản lý Nhân viên
+          </Link>
+        </div>
       </div>
 
       {selected && (

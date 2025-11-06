@@ -45,11 +45,32 @@ router.get("/", requireAuth(["supervisor", "employee"]), async (req, res) => {
  */
 router.get("/all", requireAuth(["supervisor"]), async (req, res) => {
   try {
-    const all = await Criteria.find().sort({ version: -1, code: 1 }).lean();
+    const all = await Criteria.find()
+      .sort({ version: -1, department: 1, code: 1 })
+      .lean();
     res.json(all);
   } catch (err) {
     console.error("Error fetching all criteria:", err);
     res.status(500).json({ message: "Lỗi khi lấy toàn bộ tiêu chí" });
+  }
+});
+
+/**
+ * ===========================================================
+ *  GET /api/criteria/departments
+ *  👉 Lấy danh sách các phòng ban có tiêu chí riêng
+ * ===========================================================
+ */
+router.get("/departments", requireAuth(["supervisor"]), async (req, res) => {
+  try {
+    const departments = await Criteria.distinct("department", { 
+      department: { $ne: null },
+      isActive: true 
+    });
+    res.json(departments.sort());
+  } catch (err) {
+    console.error("Error fetching departments:", err);
+    res.status(500).json({ message: "Lỗi khi lấy danh sách phòng ban" });
   }
 });
 
@@ -61,7 +82,7 @@ router.get("/all", requireAuth(["supervisor"]), async (req, res) => {
  */
 router.post("/", requireAuth(["supervisor"]), async (req, res) => {
   try {
-    const { version, list } = req.body;
+    const { version, list, department } = req.body;
 
     if (!list?.length || !version) {
       return res
@@ -69,8 +90,12 @@ router.post("/", requireAuth(["supervisor"]), async (req, res) => {
         .json({ message: "Thiếu dữ liệu version hoặc list" });
     }
 
-    // 🔹 Vô hiệu tất cả version cũ
-    await Criteria.updateMany({}, { isActive: false });
+    // 🔹 Vô hiệu version cũ cho phòng ban cụ thể hoặc tất cả
+    if (department) {
+      await Criteria.updateMany({ department }, { isActive: false });
+    } else {
+      await Criteria.updateMany({}, { isActive: false });
+    }
 
     // 🔹 Tạo bộ version mới
     const inserted = await Criteria.insertMany(
@@ -78,13 +103,16 @@ router.post("/", requireAuth(["supervisor"]), async (req, res) => {
         code: c.code,
         name: c.name,
         description: c.description || "",
+        department: department || null,
+        weight: c.weight || 1,
         version,
         isActive: true,
       }))
     );
 
+    const deptLabel = department ? ` cho phòng ban ${department}` : " chung";
     res.status(201).json({
-      message: `Đã tạo bộ tiêu chí version ${version}`,
+      message: `Đã tạo bộ tiêu chí version ${version}${deptLabel}`,
       count: inserted.length,
       inserted,
     });
@@ -102,11 +130,17 @@ router.post("/", requireAuth(["supervisor"]), async (req, res) => {
  */
 router.put("/:id", requireAuth(["supervisor"]), async (req, res) => {
   try {
-    const { name, description } = req.body;
+    const { name, description, weight, department } = req.body;
+
+    const updateData = {};
+    if (name) updateData.name = name;
+    if (description !== undefined) updateData.description = description;
+    if (weight) updateData.weight = weight;
+    if (department !== undefined) updateData.department = department || null;
 
     const updated = await Criteria.findOneAndUpdate(
       { _id: req.params.id, isActive: true },
-      { name, description },
+      updateData,
       { new: true }
     );
 

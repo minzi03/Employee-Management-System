@@ -59,10 +59,13 @@ connectDB()
   .then(() => {
     app.listen(PORT, () => {
       console.log(`🚀 Server is running at http://localhost:${PORT}`);
-      console.log("📦 MongoDB connected successfully");
+      console.log(`🌐 CORS enabled for: ${process.env.CORS_ORIGIN || "http://localhost:5173"}`);
+      console.log(`📊 Database: employee_assessment`);
+      console.log(`🔑 Environment: ${process.env.NODE_ENV || "development"}`);
     });
   })
   .catch((err) => {
-    console.error("❌ Failed to connect to MongoDB:", err);
-    process.exit(1); // Thoát nếu không kết nối được DB
+    console.error("❌ Failed to start server:", err.message);
+    console.error("💡 Please check your MongoDB connection and environment variables");
+    process.exit(1);
   });

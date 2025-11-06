@@ -120,18 +120,23 @@ export async function deleteAssessment(id) {
  * 📊 CRITERIA MANAGEMENT
  * ===========================================================
  */
-export async function getCriteria() {
-  return request("/criteria", { method: "GET" });
+export async function getCriteria(department = null) {
+  const url = department ? `/criteria?department=${encodeURIComponent(department)}` : "/criteria";
+  return request(url, { method: "GET" });
 }
 
 export async function getAllCriteria() {
   return request("/criteria/all", { method: "GET" });
 }
 
-export async function createCriteriaSet(version, list) {
+export async function getDepartments() {
+  return request("/criteria/departments", { method: "GET" });
+}
+
+export async function createCriteriaSet(version, list, department = null) {
   return request("/criteria", {
     method: "POST",
-    body: JSON.stringify({ version, list }),
+    body: JSON.stringify({ version, list, department }),
   });
 }
 
@@ -195,6 +200,7 @@ export default {
   // Criteria
   getCriteria,
   getAllCriteria,
+  getDepartments,
   createCriteriaSet,
   updateCriteria,
   deleteCriteria,

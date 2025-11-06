@@ -21,12 +21,17 @@ export default function AssessmentModal({ open, onClose, employee }) {
 
   const cycles = ["Q1 2025", "Q2 2025", "Q3 2025", "Q4 2025"];
 
-  // 🔹 Fetch criteria từ API
+  // 🔹 Fetch criteria từ API theo phòng ban của nhân viên
   useEffect(() => {
     async function fetchCriteria() {
       try {
         setFetchingCriteria(true);
-        const res = await fetch("http://localhost:4000/api/criteria", {
+        // Lấy tiêu chí theo phòng ban của nhân viên
+        const url = employee.department 
+          ? `http://localhost:4000/api/criteria?department=${encodeURIComponent(employee.department)}`
+          : "http://localhost:4000/api/criteria";
+          
+        const res = await fetch(url, {
           headers: { ...authHeader() },
         });
         const data = await res.json();
@@ -34,11 +39,13 @@ export default function AssessmentModal({ open, onClose, employee }) {
         // Nếu có lỗi
         if (!res.ok) throw new Error(data.message || "Không thể lấy tiêu chí");
 
-        // Chuyển về dạng { key, label, score }
+        // Chuyển về dạng { key, label, score, weight }
         const formatted = data.map((c) => ({
           key: c.code,
           label: c.name,
           score: 3,
+          weight: c.weight || 1,
+          comment: ""
         }));
         setCriteria(formatted);
       } catch (err) {
@@ -49,8 +56,10 @@ export default function AssessmentModal({ open, onClose, employee }) {
       }
     }
 
-    fetchCriteria();
-  }, []);
+    if (employee) {
+      fetchCriteria();
+    }
+  }, [employee]);
 
   const changeScore = (key, score) => {
     setCriteria((prev) =>
@@ -58,8 +67,19 @@ export default function AssessmentModal({ open, onClose, employee }) {
     );
   };
 
+  const changeComment = (key, comment) => {
+    setCriteria((prev) =>
+      prev.map((c) => (c.key === key ? { ...c, comment } : c))
+    );
+  };
+
+  // Tính điểm trung bình có trọng số
   const avg = criteria.length
-    ? (criteria.reduce((a, b) => a + b.score, 0) / criteria.length).toFixed(1)
+    ? (() => {
+        const totalWeightedScore = criteria.reduce((sum, c) => sum + (c.score * c.weight), 0);
+        const totalWeight = criteria.reduce((sum, c) => sum + c.weight, 0);
+        return totalWeight > 0 ? (totalWeightedScore / totalWeight).toFixed(1) : 0;
+      })()
     : 0;
 
   async function submit() {
@@ -122,6 +142,16 @@ export default function AssessmentModal({ open, onClose, employee }) {
       >
         <h3 style={{ marginBottom: 12 }}>
           Tạo đánh giá mới cho <b>{employee.fullName}</b>
+          {employee.department && (
+            <span style={{ 
+              fontSize: "14px", 
+              color: "#6b7280", 
+              fontWeight: "normal",
+              marginLeft: "8px"
+            }}>
+              ({employee.department})
+            </span>
+          )}
         </h3>
 
         {/* Kỳ đánh giá */}
@@ -161,10 +191,30 @@ export default function AssessmentModal({ open, onClose, employee }) {
           </div>
         ) : (
           criteria.map((c, i) => (
-            <div key={i} style={{ marginBottom: 15 }}>
-              <div style={{ display: "flex", justifyContent: "space-between" }}>
-                <label>{c.label}</label>
-                <b>{c.score}/5</b>
+            <div key={i} style={{ 
+              marginBottom: 20, 
+              padding: "15px", 
+              background: "#f9fafb", 
+              borderRadius: "8px",
+              border: "1px solid #e5e7eb"
+            }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "8px" }}>
+                <label style={{ fontWeight: "500", fontSize: "14px" }}>
+                  {c.label}
+                  {c.weight !== 1 && (
+                    <span style={{ 
+                      fontSize: "12px", 
+                      color: "#6b7280", 
+                      marginLeft: "8px",
+                      background: "#e5e7eb",
+                      padding: "2px 6px",
+                      borderRadius: "4px"
+                    }}>
+                      Trọng số: {c.weight}
+                    </span>
+                  )}
+                </label>
+                <b style={{ color: "#3b82f6" }}>{c.score}/5</b>
               </div>
               <input
                 type="range"
@@ -172,7 +222,25 @@ export default function AssessmentModal({ open, onClose, employee }) {
                 max="5"
                 value={c.score}
                 onChange={(e) => changeScore(c.key, e.target.value)}
-                style={{ width: "100%" }}
+                style={{ 
+                  width: "100%", 
+                  marginBottom: "8px",
+                  accentColor: "#3b82f6"
+                }}
+              />
+              <textarea
+                placeholder="Nhận xét cho tiêu chí này (tùy chọn)..."
+                value={c.comment}
+                onChange={(e) => changeComment(c.key, e.target.value)}
+                rows={2}
+                style={{ 
+                  width: "100%", 
+                  padding: "6px 8px", 
+                  fontSize: "12px",
+                  border: "1px solid #d1d5db",
+                  borderRadius: "4px",
+                  resize: "vertical"
+                }}
               />
             </div>
           ))
@@ -198,8 +266,22 @@ export default function AssessmentModal({ open, onClose, employee }) {
           placeholder="Ví dụ: Nâng cao kỹ năng lãnh đạo, cải thiện giao tiếp..."
         />
 
-        <div style={{ marginBottom: 10 }}>
-          <b>Điểm trung bình:</b> <span>{avg}/5</span>
+        <div style={{ 
+          marginBottom: 15, 
+          padding: "12px", 
+          background: "#f0f9ff", 
+          borderRadius: "8px",
+          border: "1px solid #0ea5e9"
+        }}>
+          <b style={{ color: "#0369a1" }}>Điểm trung bình (có trọng số):</b> 
+          <span style={{ 
+            fontSize: "18px", 
+            fontWeight: "bold", 
+            color: "#0369a1",
+            marginLeft: "8px"
+          }}>
+            {avg}/5
+          </span>
         </div>
 
         <div
