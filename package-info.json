@@ -1,0 +1,85 @@
+{
+  "project": {
+    "name": "Employee Assessment System",
+    "version": "1.0.0",
+    "description": "Hệ thống đánh giá nhân viên với xuất PDF tiếng Việt",
+    "author": "Developer",
+    "demo_date": "2024",
+    "tech_stack": {
+      "frontend": {
+        "framework": "React 19.1.1",
+        "build_tool": "Vite 7.1.7",
+        "styling": "Inline CSS + Responsive",
+        "pdf_export": "jsPDF 3.0.3 + html2canvas 1.4.1",
+        "charts": "Recharts 3.3.0",
+        "routing": "React Router DOM 7.9.5"
+      },
+      "backend": {
+        "runtime": "Node.js",
+        "framework": "Express.js",
+        "database": "MongoDB Atlas Cloud",
+        "auth": "JWT + bcrypt",
+        "cors": "Enabled for localhost:5173"
+      }
+    },
+    "features": {
+      "core": [
+        "Employee Management (CRUD)",
+        "Assessment System",
+        "Criteria Management", 
+        "Role-based Access (Supervisor/Employee)",
+        "Dashboard with Statistics"
+      ],
+      "pdf_export": [
+        "Employee List (Simple Table)",
+        "Detailed Employee Report (with Statistics)",
+        "Individual Assessment Report",
+        "Criteria Management Report",
+        "Vietnamese Font Support (UTF-8)",
+        "Professional Layout (Header/Footer/Pagination)"
+      ],
+      "ui_ux": [
+        "Responsive Design",
+        "Modern Gradient UI",
+        "Interactive Charts",
+        "Modal Forms",
+        "Loading States",
+        "Error Handling"
+      ]
+    },
+    "demo_highlights": [
+      "PDF Export với tiếng Việt hiển thị chính xác",
+      "Giao diện responsive và thân thiện",
+      "Quản lý nhân viên đầy đủ tính năng",
+      "Hệ thống đánh giá với nhiều tiêu chí",
+      "Dashboard với thống kê trực quan",
+      "Phân quyền supervisor/employee"
+    ],
+    "urls": {
+      "frontend": "http://localhost:5173",
+      "backend": "http://localhost:4000",
+      "login": "http://localhost:5173/login",
+      "employee_management": "http://localhost:5173/employee-management",
+      "employee_detail": "http://localhost:5173/employee-detail",
+      "criteria_admin": "http://localhost:5173/criteria-admin"
+    },
+    "credentials": {
+      "supervisor": {
+        "username": "supervisor",
+        "password": "password123",
+        "role": "Quản lý - Full access"
+      },
+      "employee": {
+        "username": "employee1", 
+        "password": "password123",
+        "role": "Nhân viên - Limited access"
+      }
+    },
+    "setup_commands": {
+      "auto_setup": "setup-and-run.bat",
+      "quick_start": "quick-start.bat",
+      "manual_backend": "cd backend && npm install && npm start",
+      "manual_frontend": "cd frontend && npm install && npm run dev"
+    }
+  }
+}
